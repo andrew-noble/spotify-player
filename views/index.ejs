@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andrew's Spotify Frontend</title>
+</head>
+
+<body>
+
+    <% if (!locals.trackName) { %>
+
+        <p> Nothing currently playing, pick one of your playlists!</p>
+
+        <% } else if (locals.trackName) { %>
+            <h1>Audio Player</h1>
+            <h2>Track:</h2>
+            <p>
+                <%= trackName %>
+            </p>
+            <h3>Artist(s):</h3>
+            <p>
+                <% for(let i=0; i<artistNames.length; i++) { %>
+                    <!--This if block is just to get commas lol-->
+                    <% if (i<artistNames.length-1) { %>
+                        <%=artistNames[i].name%>,
+                            <% } else { %>
+                                <%= artistNames[i].name %>
+                                    <%}} %>
+            </p>
+
+            <img src=<%=imageURL%> />
+
+            <h3>Queue:</h3>
+            <ol>
+                <% queue.forEach(song=> { %>
+                    <li>
+                        <%= song.name %>
+                    </li>
+                    <% }) %>
+            </ol>
+
+
+            <form id="toggleForm" action="/togglePlayback" method="post">
+                <button id="playPauseButton">Toggle Playback</button>
+            </form>
+
+            <form id="skipPreviousForm" action="/previous" method="post">
+                <button id="previousButton">Skip to Previous Song</button>
+            </form>
+
+            <form id="skipNextForm" action="/next" method="post">
+                <button id="nextButton">Skip to Next Song</button>
+            </form>
+
+            <% } %>
+
+
+
+</body>
+
+</html>
