@@ -1,7 +1,6 @@
 import express from "express";
 import axios from "axios";
 import { authRouter, getAuthConfig } from "./routes/auth.js";
-import bodyParser from "body-parser";
 import queryString from "query-string";
 
 const app = express();
@@ -10,7 +9,7 @@ const port = 3000;
 //The base endpoint I am using for all my simple api calls in this proj
 const API_URL = "https://api.spotify.com/v1/me/player";
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 //This diverts all auth-related req's to an external file, purely for file org. Acts
 //similarly to middleware, and it kinda is auth middleware
