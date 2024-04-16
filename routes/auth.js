@@ -73,7 +73,7 @@ authRouter.get("/callback", async (req, res) => {
         config
       );
 
-      //access_token = result.data.access_token;
+      access_token = result.data.access_token;
       refresh_token = result.data.refresh_token;
 
       return res.redirect("/initialPlay");
