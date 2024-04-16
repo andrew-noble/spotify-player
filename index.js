@@ -16,36 +16,39 @@ app.use(express.static("public"));
 app.use("/auth", authRouter);
 
 function errorHandler(error, req) {
-  if (error.status === 401 && error.message === "The access token expired") {
+  if (
+    error.response.data.error.status === 401 &&
+    error.response.data.error.message === "The access token expired"
+  ) {
     //This just takes the client to refresh the token in auth.js
     //I'm using a query string to pass in the route that tried to used the expired
     //token so that /auth/refreshToken can re-run the failed route with a fresh token
     //to do this, I decided to simply use a query string.
     const query = queryString.stringify({
-      routeTokenExpiredOn: req._parsedOriginalUrl.pathname,
+      routeTokenExpiredOn: req.originalUrl,
     });
     return res.redirect("/auth/refreshToken" + query);
   } else {
-    console.log(error.message);
-
-    switch (req._parsedOriginalUrl.pathname) {
+    switch (req.originalUrl) {
       case "/initialPlay":
-        console.log("Error playing initial playlist");
+        console.log("Internal Error Message: Error playing initial playlist");
         break;
       case "/player":
-        console.log("Error starting the music player");
+        console.log("Internal Error Message: Error starting the music player");
         break;
       case "/togglePlayback":
-        console.log("Error playing/pausing the music");
+        console.log("Internal Error Message: Error playing/pausing the music");
         break;
       case "/previous":
-        console.log("Error skipping to previous song");
+        console.log("Internal Error Message: Error skipping to previous song");
         break;
       case "/next":
-        console.log("Error skipping to next song");
+        console.log("Internal Error Message: Error skipping to next song");
         break;
     }
-    return;
+    return console.log(
+      "HTTP error message: " + error.response.data.error.message
+    );
   }
 }
 
