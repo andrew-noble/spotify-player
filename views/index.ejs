@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
     <title>Andrew's Spotify Frontend</title>
 </head>
 
 <body>
-
     <% if (!locals.trackName) { %>
 
         <p> You need to open a spotify app somewhere to use this interface. </p>
@@ -20,48 +20,59 @@
 
         <% } else if (locals.trackName) { %>
             <h1>Audio Player</h1>
-            <h2>Track:</h2>
-            <p>
-                <%= trackName %>
-            </p>
-            <h3>Artist(s):</h3>
-            <p>
-                <% for(let i=0; i<artistNames.length; i++) { %>
-                    <!--This if block is just to get commas lol-->
-                    <% if (i<artistNames.length-1) { %>
-                        <%=artistNames[i].name%>,
-                            <% } else { %>
-                                <%= artistNames[i].name %>
-                                    <%}} %>
-            </p>
+            <main>
+                <div class="block">
+                    <h2>Track:</h2>
+                    <p>
+                        <%= trackName %>
+                    </p>
+                    <h3>Artist(s):</h3>
+                    <p>
+                        <% for(let i=0; i<artistNames.length; i++) { %>
+                            <!--This if block is just to get commas lol-->
+                            <% if (i<artistNames.length-1) { %>
+                                <%=artistNames[i].name%>,
+                                    <% } else { %>
+                                        <%= artistNames[i].name %>
+                                            <%}} %>
+                    </p>
+                </div>
+                <div class="block">
 
-            <img src=<%=imageURL%> />
+                    <img src=<%=imageURL%> />
 
-            <h3>Queue:</h3>
-            <ol>
-                <% queue.forEach(song=> { %>
-                    <li>
-                        <%= song.name %>
-                    </li>
-                    <% }) %>
-            </ol>
+                    <div class="controls">
 
-            <form id="toggleForm" action="/togglePlayback" method="post">
-                <button id="playPauseButton">Toggle Playback</button>
-            </form>
 
-            <form id="skipPreviousForm" action="/previous" method="post">
-                <button id="previousButton">Skip to Previous Song</button>
-            </form>
+                        <form id="skipPreviousForm" action="/previous" method="post">
+                            <button id="previousButton">Skip to Previous Song</button>
+                        </form>
 
-            <form id="skipNextForm" action="/next" method="post">
-                <button id="nextButton">Skip to Next Song</button>
-            </form>
+                        <form id="toggleForm" action="/togglePlayback" method="post">
+                            <button id="playPauseButton">Play / Pause</button>
+                        </form>
+
+                        <form id="skipNextForm" action="/next" method="post">
+                            <button id="nextButton">Skip to Next Song</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="block">
+                    <h3>Queue:</h3>
+                    <ol>
+                        <% queue.forEach(song=> { %>
+                            <li>
+                                <%= song.name %>
+                            </li>
+                            <% }) %>
+                    </ol>
+                </div>
+
+
+            </main>
 
             <% } %>
-
-
-
 </body>
 
 </html>

@@ -104,7 +104,7 @@ app.get("/player", async (req, res) => {
       trackName: fetchedPlaybackState.data.item.name,
       artistNames: fetchedPlaybackState.data.item.artists,
       imageURL: fetchedPlaybackState.data.item.album.images[0].url,
-      queue: fetchedQueue.data.queue,
+      queue: fetchedQueue.data.queue.slice(0, 10),
     });
   } catch (error) {
     res.status(500);
