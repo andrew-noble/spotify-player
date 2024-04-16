@@ -11,7 +11,12 @@
 
     <% if (!locals.trackName) { %>
 
-        <p> Nothing currently playing, pick one of your playlists!</p>
+        <p> You need to open a spotify app somewhere to use this interface. </p>
+        <p> Open an app on your computer or smartphone, and click below to try again.</p>
+
+        <form id="failedInitialPlayForm" action="/initialPlay" method="get">
+            <button id="failedInitialPlayButton">Try Again</button>
+        </form>
 
         <% } else if (locals.trackName) { %>
             <h1>Audio Player</h1>
@@ -40,7 +45,6 @@
                     </li>
                     <% }) %>
             </ol>
-
 
             <form id="toggleForm" action="/togglePlayback" method="post">
                 <button id="playPauseButton">Toggle Playback</button>

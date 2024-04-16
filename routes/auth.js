@@ -11,7 +11,7 @@ const client_secret = process.env.CLIENT_SECRET;
 const client_id = process.env.CLIENT_ID;
 
 //This object is how /auth/... reqs are diverted here from index.js. The router obj like a 'sub-app"
-//which is why it is being used like app is in index.js
+//which is why it is being used like app is in index.js. See: https://expressjs.com/en/4x/api.html#router
 export const authRouter = express.Router();
 
 //This is how business logic routes retrieve the currently active access_token
@@ -26,9 +26,9 @@ export function getAuthConfig() {
 authRouter.get("/login", (req, res) => {
   var state = (Math.random() + 1).toString(36).substring(7); //rando value to avoid CSRF. returned later
   var scope =
-    "user-read-currently-playing user-modify-playback-state user-read-playback-state playlist-read-private";
+    "user-read-currently-playing user-modify-playback-state user-read-playback-state user-read-recently-played";
 
-  res.redirect(
+  return res.redirect(
     "https://accounts.spotify.com/authorize?" +
       queryString.stringify({
         response_type: "code",
@@ -58,9 +58,10 @@ authRouter.get("/callback", async (req, res) => {
     if (state === null) {
       //This is the code that would catch a CSRF-- doubt anyone's targetting my lil app lol
       res.status(500);
+      return res.send("State is missing, possible CSRF");
     } else {
       //side note: axios stringifies stuff into json automatically, hence why no quotes around grant_type etc
-      var body = {
+      const payload = {
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/auth/callback",
         code: code,
@@ -68,14 +69,14 @@ authRouter.get("/callback", async (req, res) => {
 
       const result = await axios.post(
         "https://accounts.spotify.com/api/token",
-        body,
+        payload,
         config
       );
 
       access_token = result.data.access_token;
       refresh_token = result.data.refresh_token;
 
-      res.redirect("/initialPlay");
+      return res.redirect("/initialPlay");
     }
   } catch (error) {
     console.log(error);
@@ -84,8 +85,37 @@ authRouter.get("/callback", async (req, res) => {
   }
 });
 
-//add refresh functionality in later. Probably every business-logic route in index.js needs
-//to send you here to the refresh in the case that they get a expired token warning.
-// app.get("/refreshToken", async (req,res) => {
-//   const result = await axios.get()
-// })
+//Refresh functionality that will prob never get used.
+//Every business-logic route in index.js needs to send client here
+//in the case that they get a expired token warning.
+
+authRouter.get("/refreshToken", async (req, res) => {
+  const payload = {
+    grant_type: "authorization_code",
+    refresh_token: refresh_token,
+  };
+
+  const headers = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    Authorization:
+      "Basic " +
+      new Buffer.from(client_id + ":" + client_secret).toString("base64"),
+  };
+
+  const result = await axios.post(
+    "https://accounts.spotify.com/api/token",
+    payload,
+    headers
+  );
+
+  access_token = result.data.access_token;
+
+  //Weirdly don't get a new refresh token like the docs say i should,
+  // but o.g. one works for me, so if'ing this.
+  if (result.data.refresh_token) {
+    refresh_token = result.data.refresh_token;
+  } else {
+  }
+
+  return res.redirect(req.query.routeTokenExpiredOn);
+});
