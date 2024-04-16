@@ -1,8 +1,6 @@
 import express from "express";
 import axios from "axios";
-import bodyParser from "body-parser";
-import queryString from "query-string";
-import "dotenv/config";
+import { authRouter, getAuthConfig } from "./routes/auth.js";
 
 const app = express();
 const port = 3000;
@@ -10,8 +8,10 @@ const port = 3000;
 //The base endpoint I am using for all my simple api calls in this proj
 const API_URL = "https://api.spotify.com/v1/me/player";
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+//This diverts all auth-related req's to an external file, purely for file org. Acts
+//similarly to middleware, and it kinda is auth middleware
+app.use("/auth", authRouter);
 
 //serve up the landing page
 app.get("/", (req, res) => {
@@ -23,100 +23,15 @@ app.get("/", (req, res) => {
   }
 });
 
-//------------------------------------------- AUTHENTICATION ---------------------------------
-let access_token;
-let refresh_token;
-
-client_secret = process.env.CLIENT_SECRET;
-client_id = process.env.CLIENT_ID;
-const redirect_uri = "http://localhost:3000/callback"; //where spotify sends user after auth
-
-//The config needs to be dynamically generated since the access_token will be changing.
-function getConfig() {
-  return {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  };
-}
-
-//This route sends the user to spotify to authorize that my app can
-//see whats playing, manipulate it, etc. See https://developer.spotify.com/documentation/web-api/tutorials/code-flow
-app.get("/login", (req, res) => {
-  var state = (Math.random() + 1).toString(36).substring(7); //rando value to avoid CSRF. It gets passed back later
-  //the functionality scopes I am asking user to give me access to
-  var scope =
-    "user-read-currently-playing user-modify-playback-state user-read-playback-state playlist-read-private";
-
-  res.redirect(
-    "https://accounts.spotify.com/authorize?" +
-      queryString.stringify({
-        response_type: "code",
-        client_id: client_id,
-        scope: scope,
-        redirect_uri: redirect_uri,
-        state: state,
-      })
-  );
-});
-
-//This route requests an access token from spotify following user's approval in /login
-app.get("/callback", async (req, res) => {
-  var code = req.query.code || null; //In JS, || returns first operand if coercable into truthy, second if not.
-  var state = req.query.state || null;
-  const auth_config = {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        new Buffer.from(client_id + ":" + client_secret).toString("base64"),
-    },
-  };
-
-  try {
-    if (state === null) {
-      //This is the code that would catch a CSRF
-      res.status(500);
-    } else {
-      //side note: axios stringifies stuff into json automatically, hence why no quotes around grant_type etc
-      var body = {
-        grant_type: "authorization_code",
-        redirect_uri: redirect_uri,
-        code: code,
-      };
-      const result = await axios.post(
-        "https://accounts.spotify.com/api/token",
-        body,
-        auth_config
-      );
-      access_token = result.data.access_token;
-      refresh_token = result.data.refresh_token;
-
-      res.redirect("/initialPlay");
-    }
-  } catch (error) {
-    console.log(error.message);
-    console.log("Error retrieving the auth token");
-    res.status(500);
-  }
-});
-
-//add refresh functionality in later
-// app.get("/refreshToken", async (req,res) => {
-//   const result = await axios.get()
-// })
-
-//------------------------------------------------------------------------------------------------
-
 app.get("/player", async (req, res) => {
   try {
     const result = await axios.get(
       "https://api.spotify.com/v1/me/player/currently-playing",
-      getConfig()
+      getAuthConfig()
     );
     const result2 = await axios.get(
       "https://api.spotify.com/v1/me/player/queue",
-      getConfig()
+      getAuthConfig()
     );
 
     res.render("index.ejs", {
@@ -137,7 +52,7 @@ app.get("/initialPlay", async (req, res) => {
     //Get the first active device
     const devices = await axios.get(
       "https://api.spotify.com/v1/me/player/devices",
-      getConfig()
+      getAuthConfig()
     );
 
     const device_id = [devices.data.devices[0].id];
@@ -146,13 +61,13 @@ app.get("/initialPlay", async (req, res) => {
     await axios.put(
       "https://api.spotify.com/v1/me/player",
       { device_ids: device_id, play: false },
-      getConfig()
+      getAuthConfig()
     );
 
     //randomly pick one of the users' playlists to start playing initially
     const playlists = await axios.get(
       "https://api.spotify.com/v1/me/playlists",
-      getConfig()
+      getAuthConfig()
     );
 
     //pick a rando playlist
@@ -166,7 +81,7 @@ app.get("/initialPlay", async (req, res) => {
       {
         "context-uri": playlist.uri,
       },
-      getConfig()
+      getAuthConfig()
     );
 
     res.redirect("/player");
@@ -182,7 +97,7 @@ app.post("/togglePlayback", async (req, res) => {
 
     const result = await axios.get(
       "https://api.spotify.com/v1/me/player",
-      getConfig()
+      getAuthConfig()
     );
 
     //Null is critical for axios.put, since second arg is data, which this req does not have
@@ -190,13 +105,13 @@ app.post("/togglePlayback", async (req, res) => {
       await axios.put(
         "https://api.spotify.com/v1/me/player/pause",
         null,
-        getConfig()
+        getAuthConfig()
       );
     } else {
       await axios.put(
         "https://api.spotify.com/v1/me/player/play",
         null,
-        getConfig()
+        getAuthConfig()
       );
     }
   } catch (error) {
@@ -210,7 +125,7 @@ app.post("/previous", async (req, res) => {
     const result = await axios.post(
       "https://api.spotify.com/v1/me/player/previous",
       null,
-      getConfig()
+      getAuthConfig()
     );
 
     res.redirect("/player");
@@ -225,7 +140,7 @@ app.post("/next", async (req, res) => {
     const result = await axios.post(
       "https://api.spotify.com/v1/me/player/next",
       null,
-      getConfig()
+      getAuthConfig()
     );
 
     res.redirect("/player");
