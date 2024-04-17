@@ -1,7 +1,7 @@
 import express from "express";
 import axios from "axios";
-import { authRouter, getAuthConfig } from "./routes/auth.js";
 import queryString from "query-string";
+import { authRouter, getAuthConfig } from "./routes/auth.js";
 
 const app = express();
 const port = 3000;
@@ -12,7 +12,8 @@ const API_URL = "https://api.spotify.com/v1/me/player";
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 //This diverts all auth-related req's to an external file, purely for file org. Acts
-//similarly to middleware, and it kinda is auth middleware
+//similarly to middleware, and it kinda is-- it's authentication middleware. This line
+//of code is simple saying "for routes that start in /auth, use the authRouter we imported from auth.js"
 app.use("/auth", authRouter);
 
 function errorHandler(error, req) {

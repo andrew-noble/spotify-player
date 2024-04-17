@@ -4,15 +4,15 @@ import queryString from "query-string";
 //package for loading environment variables from .env (in gitignore)
 import "dotenv/config";
 
+//This object is how /auth/... reqs are diverted here from index.js. The router obj like a 'sub-app"
+//which is why it is being used like app is in index.js. See: https://expressjs.com/en/4x/api.html#router
+export const authRouter = express.Router();
+
 let access_token;
 let refresh_token;
 
 const client_secret = process.env.CLIENT_SECRET;
 const client_id = process.env.CLIENT_ID;
-
-//This object is how /auth/... reqs are diverted here from index.js. The router obj like a 'sub-app"
-//which is why it is being used like app is in index.js. See: https://expressjs.com/en/4x/api.html#router
-export const authRouter = express.Router();
 
 //This is how business logic routes retrieve the currently active access_token
 export function getAuthConfig() {
@@ -40,7 +40,7 @@ authRouter.get("/login", (req, res) => {
   );
 });
 
-//Auth step 2: spotify returns user to this route so we can go ahead and get a token now that they gave us
+//Auth step 2: spotify returns user to this route so we can go ahead and get a token now that user gave us
 //permission.
 authRouter.get("/callback", async (req, res) => {
   var code = req.query.code || null; //In JS, || returns first operand if coercable into truthy, second if not.
@@ -110,12 +110,9 @@ authRouter.get("/refreshToken", async (req, res) => {
 
   access_token = result.data.access_token;
 
-  //Weirdly don't get a new refresh token like the docs say i should,
-  // but o.g. one works for me, so if'ing this.
-  if (result.data.refresh_token) {
-    refresh_token = result.data.refresh_token;
-  } else {
-  }
+  //Weirdly don't get a new refresh token like the docs say I should,
+  // but o.g. one works for me, so I'm only reassigning if I get a new refresh token
+  refresh_token = result.data.refresh_token || refresh_token;
 
   return res.redirect(req.query.routeTokenExpiredOn);
 });
