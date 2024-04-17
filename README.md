@@ -10,6 +10,13 @@ I am sharing it here in case someone else who is learning web development wants 
 - displays song title, artist(s), and album cover
 - displays next 10 songs in the queue
 
+## Packages Used
+- [express](https://expressjs.com/) for the webapp/server
+- [axios](https://axios-http.com/docs/intro) for HTTP requests
+- [EJS](https://ejs.co/) for templating
+- [dotenv](https://www.npmjs.com/package/dotenv) for hiding my client secret and client id
+- [query-string](https://www.npmjs.com/package/query-string) for assembling query strings from JS objects
+
 ## Getting started
 
 1. Clone the repo
