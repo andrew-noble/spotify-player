@@ -4,7 +4,7 @@ import queryString from "query-string";
 //package for loading environment variables from .env (in gitignore)
 import "dotenv/config";
 
-//This object is how /auth/... reqs are diverted here from index.js. The router obj like a 'sub-app"
+//This object is how /auth/... reqs are diverted here from index.js. The authRouter obj like a 'sub-app"
 //which is why it is being used like app is in index.js. See: https://expressjs.com/en/4x/api.html#router
 export const authRouter = express.Router();
 
