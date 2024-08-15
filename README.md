@@ -1,6 +1,6 @@
 # Simple Spotify Playback App
 
-This is a simple spotify app that reproduces some features of an audio player you might find in Spotify's own desktop or smartphone apps.
+This is a web app that reproduces some features of an spotify player you might find in Spotify's own desktop or smartphone apps.
 I am sharing it here in case someone else who is learning web development wants to check it out, or, even better, wants to give me feedback.
 
 ## Features
